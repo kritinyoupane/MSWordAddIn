@@ -76,19 +76,26 @@ const loginFormContainer = () => {
     };
     const response = await fetch(`${baseUrl}/auth/login`, requestOptions);
     const data = await response.json();
-    localStorage.setItem("token", data["token"]);
-    localStorage.setItem("user", JSON.stringify(data["user"]));
-    const mainContainer = document.getElementById("app-body");
-    while (mainContainer.firstChild) {
-      mainContainer.removeChild(mainContainer.firstChild);
-    }
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      if (user.approvalStatus === "Approved") {
-        mainContainer.appendChild(contentContainer());
-      } else {
-        mainContainer.appendChild(adminApprovalContainer());
+    console.log(data);
+    if (data["loginStatus"]==="Login"){
+      localStorage.setItem("token", data["token"]);
+      localStorage.setItem("user", JSON.stringify(data["user"]));
+      const mainContainer = document.getElementById("app-body");
+      while (mainContainer.firstChild) {
+        mainContainer.removeChild(mainContainer.firstChild);
       }
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user) {
+        if (user.approvalStatus === "Approved") {
+          mainContainer.appendChild(contentContainer());
+        } else {
+          mainContainer.appendChild(adminApprovalContainer());
+        }
+      }
+    }
+    else{
+
+      displayErrorMessage({"error":"username or password is incorrect"});
     }
   };
   const signUpContainer = document.createElement("span");
@@ -328,21 +335,61 @@ const signUpFormContainer = () => {
     };
     const response = await fetch(`${baseUrl}/auth/register`, requestOptions);
     const data = await response.json();
-    const mainContainer = document.getElementById("app-body");
-    while (mainContainer.firstChild) {
-      mainContainer.removeChild(mainContainer.firstChild);
+    if (!data["error"]){
+      const mainContainer = document.getElementById("app-body");
+      while (mainContainer.firstChild) {
+        mainContainer.removeChild(mainContainer.firstChild);
+      }
+      mainContainer.appendChild(loginFormContainer());
     }
-    mainContainer.appendChild(loginFormContainer());
+    else{
+      displayErrorMessage(data["error"]);
+    }
   };
   registrationForm.appendChild(registerButton);
-
+  const backButton = document.createElement("div");
+  backButton.className = "back";
+  backButton.innerHTML = "&#8592";
+  backButton.onclick = ()=>{
+    const mainContainer = document.getElementById("app-body");
+      while (mainContainer.firstChild) {
+        mainContainer.removeChild(mainContainer.firstChild);
+      }
+      mainContainer.appendChild(loginFormContainer());
+  }
+  registrationForm.appendChild(backButton);
   // add form to registration container
   registrationContainer.appendChild(registrationForm);
 
   // add registration container to document body
   return signupContainer;
 };
-
+const displayErrorMessage=(messages)=>{
+  while(document.getElementById("error-display").firstChild)
+  {
+    document.getElementById("error-display").removeChild(document.getElementById("error-display").firstChild)
+  }
+  const alertContainer = document.createElement("div");
+  alertContainer.className = "alert";
+  const closeContainer = document.createElement ("span")
+  closeContainer.innerHTML="&times";
+  closeContainer.className="closebtn";
+  closeContainer.onclick = ()=>{
+    while(document.getElementById("error-display").firstChild)
+    {
+      document.getElementById("error-display").removeChild(document.getElementById("error-display").firstChild)
+    }
+  };
+  const olElement = document.createElement("ul");
+  Object.keys(messages).forEach(key=>{
+    const liElement = document.createElement("li");
+    liElement.innerHTML=messages[key];
+    olElement.appendChild(liElement);
+  })
+  alertContainer.appendChild(closeContainer);
+  alertContainer.appendChild(olElement)
+  document.getElementById("error-display").appendChild(alertContainer)
+}
 const adminApprovalContainer = () => {
   const adminApproval = document.createElement("div");
   adminApproval.id = "pending";
@@ -428,13 +475,16 @@ async function run() {
         data.map((d) => {
           $("#display_question").append(
             '<div class="row">' +
-              '<div class="col-sm-10 alert alert-primary" role="alert">' +
+              '<div class="col-sm-10 alert alert-primary questionset"  role="alert">' +
+              '<div class="frame1">'+
               // ' '+'<button onclick=clone(this)>'+
               d.question +
-              " " +
+              '</div>' +
+              '<div class="frame2">' +
               '<i class="fas fa-clone" onclick="clone(this, \'' +
               d.question +
-              "')\"></i>&nbsp;&nbsp;" +
+              "')\"></i>&nbsp;&nbsp;" + 
+              '</div>' +
               // '<div class="hide_overflow">' +
               // response[key].name +
               // "</div>" +

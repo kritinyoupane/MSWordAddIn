@@ -100,10 +100,56 @@ button {
     cursor: pointer;
     margin: 5% 0%;
 }  
-
+.alert {
+    padding: 20px;
+    background-color: #a58885;
+    color: white;
+  }
+  
+  .closebtn {
+    margin-left: 15px;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .closebtn:hover {
+    color: black;
+  }
 button:hover {
     background-color: teal;
 }  
+.back {
+    margin: 10px 0px 0 100%;
+    border: 0.5px solid green;
+    width: 20%;
+    text-align: center;
+    border-radius: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.back:hover{
+    cursor: pointer;
+    background-color: teal;
+    color:white;
+
+}
+.questionset{
+    display: flex;
+    flex-direction: row;
+}
+.frame1{
+    width: 95%;
+}
+
+.frame2{
+    width: 5%;
+    justify-content: right;
+}
+
  .ms-welcome__main > h2 {
      width: 100%;
      text-align: center;
