@@ -45,6 +45,7 @@
         function clone(event, response) {
             Word.run(async (context) => {
                 // Get the selected paragraph
+                console.log(response)
                 const paragraphx = context.document.getSelection();
                 context.load(paragraphx);
                 await context.sync();

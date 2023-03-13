@@ -1,5 +1,16 @@
 const baseUrl = "http://127.0.0.1:8000";
 var old_text = "";
+const clearContainer = ()=>{
+  const mainContainer = document.getElementById("app-body");
+    while (mainContainer.firstChild) {
+      mainContainer.removeChild(mainContainer.firstChild);
+    }
+    const errorContainer = document.getElementById("error-display");
+    while(errorContainer.firstChild)
+    {
+      errorContainer.removeChild(errorContainer.firstChild);
+  }
+}
 const loginFormContainer = () => {
   // create login container element
   const loginContainer = document.createElement("div");
@@ -80,11 +91,9 @@ const loginFormContainer = () => {
     if (data["loginStatus"]==="Login"){
       localStorage.setItem("token", data["token"]);
       localStorage.setItem("user", JSON.stringify(data["user"]));
-      const mainContainer = document.getElementById("app-body");
-      while (mainContainer.firstChild) {
-        mainContainer.removeChild(mainContainer.firstChild);
-      }
+      clearContainer();
       const user = JSON.parse(localStorage.getItem("user"));
+      const mainContainer = document.getElementById("app-body");
       if (user) {
         if (user.approvalStatus === "Approved") {
           mainContainer.appendChild(contentContainer());
@@ -107,10 +116,8 @@ const loginFormContainer = () => {
   signUpButton.textContent = "Sign Up";
   signUpButton.onclick = (e) => {
     e.preventDefault();
+    clearContainer();
     const mainContainer = document.getElementById("app-body");
-    while (mainContainer.firstChild) {
-      mainContainer.removeChild(mainContainer.firstChild);
-    }
     mainContainer.appendChild(signUpFormContainer());
   };
   signUpContainer.appendChild(signUpTitle);
@@ -135,7 +142,7 @@ const contentContainer = () => {
   // create div with id "cursorHighlight"
   const cursorHighlightDiv = document.createElement("div");
   cursorHighlightDiv.setAttribute("id", "cursorHighlight");
-  cursorHighlightDiv.textContent = "Please select text to see question recommendations.";
+  cursorHighlightDiv.textContent = "Highlighted Text Will Appear Here";
 
   // create div with id "run" and class "ms-welcome__action ms-Button ms-Button--hero ms-font-xl"
   const runDiv = document.createElement("div");
@@ -154,13 +161,6 @@ const contentContainer = () => {
   // create div with id "display_question"
   const displayQuestionDiv = document.createElement("div");
   displayQuestionDiv.setAttribute("id", "display_question");
-  const displayQuestionHeader = document.createElement("h4");
-  displayQuestionHeader.textContent = "Similar Questions";
-  const displayQuestionText = document.createElement("div");
-  displayQuestionText.setAttribute("class", "text-primary");
-  displayQuestionText.textContent = "Similar questions would be displayed here!";
-  displayQuestionDiv.appendChild(displayQuestionHeader);
-  displayQuestionDiv.appendChild(displayQuestionText);
   
   // append all child elements to parent div
   contentDiv.appendChild(cursorHighlightDiv);
@@ -337,9 +337,7 @@ const signUpFormContainer = () => {
     const data = await response.json();
     if (!data["error"]){
       const mainContainer = document.getElementById("app-body");
-      while (mainContainer.firstChild) {
-        mainContainer.removeChild(mainContainer.firstChild);
-      }
+      clearContainer();
       mainContainer.appendChild(loginFormContainer());
     }
     else{
@@ -352,9 +350,7 @@ const signUpFormContainer = () => {
   backButton.innerHTML = "&#8592";
   backButton.onclick = ()=>{
     const mainContainer = document.getElementById("app-body");
-      while (mainContainer.firstChild) {
-        mainContainer.removeChild(mainContainer.firstChild);
-      }
+     clearContainer();
       mainContainer.appendChild(loginFormContainer());
   }
   registrationForm.appendChild(backButton);
@@ -414,9 +410,7 @@ const adminApprovalContainer = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     const mainContainer = document.getElementById("app-body");
-    while (mainContainer.firstChild) {
-      mainContainer.removeChild(mainContainer.firstChild);
-    }
+    clearContainer();
     mainContainer.appendChild(loginFormContainer());
   };
   adminApproval.appendChild(logoutButton);
@@ -427,9 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("token");
   if (user && token) {
     const mainContainer = document.getElementById("app-body");
-    while (mainContainer.firstChild) {
-      mainContainer.removeChild(mainContainer.firstChild);
-    }
+    clearContainer();
     if (user.approvalStatus === "Approved") {
       mainContainer.appendChild(contentContainer());
     } else {
@@ -437,9 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   } else {
     const mainContainer = document.getElementById("app-body");
-    while (mainContainer.firstChild) {
-      mainContainer.removeChild(mainContainer.firstChild);
-    }
+    clearContainer();
     mainContainer.appendChild(loginFormContainer());
   }
 });
@@ -472,13 +462,14 @@ async function run() {
         while (displayQuestion.firstChild) {
           displayQuestion.removeChild(displayQuestion.firstChild);
         }
-        data.map((d) => {
+        console.log(data)
+        data.similarQuestion.map((d,idx) => {
           $("#display_question").append(
             '<div class="row">' +
               '<div class="col-sm-10 alert alert-primary questionset"  role="alert">' +
               '<div class="frame1">'+
               // ' '+'<button onclick=clone(this)>'+
-              d.question +
+              d.question + '<br>'+ d.examYear+"("+d.examinationType+")" +
               '</div>' +
               '<div class="frame2">' +
               '<i class="fas fa-clone" onclick="clone(this, \'' +
@@ -501,7 +492,7 @@ async function run() {
         paraphraseButton.onclick = async (e) => {
           e.preventDefault();
           console.log("Clicked");
-          const data = await paraPhrase(old_text,3)
+          const data = await paraPhrase(old_text,2)
           const container = document.getElementById("paraphraseQuestions");
           container.style.cssText="display:block";
           console.log(data)
@@ -510,9 +501,17 @@ async function run() {
               container.removeChild(container.firstChild);
             }
           data["choices"].forEach(d => {
-            const da=document.createElement("p");
-            da.textContent=d.text;
-            
+            const da=document.createElement("div");
+            const alertDiv = document.createElement("div");
+            alertDiv.classList="col-sm-10 alert alert-primary questionset";
+            const frame1Div = document.createElement("div");
+            frame1Div.className="frame1";
+            frame1Div.innerHTML=d.text;
+            const frame2Div=document.createElement("div");
+            frame2Div.className="frame2";
+            alertDiv.appendChild(frame1Div)
+            alertDiv.appendChild(frame2Div)
+            da.appendChild(alertDiv)
             container.appendChild(da)
           });
         };
@@ -520,26 +519,12 @@ async function run() {
       }
     }, 1000);
 
-    const clone= (event)=> {
-      Word.run(async (context) => {
-        // Get the selected paragraph
-        const paragraphx = context.document.getSelection();
-        context.load(paragraphx);
-        await context.sync();
-        // Get the text content of the parent element of the clicked button
-        const value = event.target.parentElement.textContent;
-        // Insert the text into the selected paragraph, replacing its contents
-        paragraphx.insertText(value, Word.InsertLocation.replace);
 
-        document.getElementById("run").style.display = "none";
-        await context.sync();
-      });
-    }
     const paraPhrase = async (query, noOfResult = 1) => {
       var myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
-      myHeaders.append("Authorization", "Bearer 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");
-      const prompt = `Paraphrase "${query}"`
+      myHeaders.append("Authorization", "Bearer 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");
+      const prompt = `Paraphrase "${query} in the question format"`
       // const token_length = Math.min( parseInt( query.length /4 +10), 128)
 
       var raw = JSON.stringify({
